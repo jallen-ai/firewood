@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order Firewood | Harvey's Neighborhood Firewood</title>
+<meta name="description" content="Order hand-tied firewood bundles delivered by wagon.">
+<meta name="theme-color" content="#141110">
+
+<!--
+  ==========================================================================
+  HARVEY'S NEIGHBORHOOD FIREWOOD — order app
+  --------------------------------------------------------------------------
+  ARCHITECTURE NOTE (read this before changing anything)
+
+  This is a single static HTML file with no backend, on purpose. GitHub Pages
+  can only serve static files, so there is no server available to receive an
+  order.
+
+  Instead of adding a database or a third-party form service, the "Send order"
+  button builds a plain-text message and hands it to the visitor's own SMS app
+  via an `sms:` deep link. The visitor presses send. The order arrives as a
+  normal text message on Harvey's phone.
+
+  Why this approach:
+    - No account, no database, no monthly cost, nothing that can expire.
+    - No neighbor's name/address/phone is ever stored on a server. It only
+      exists in a text message the neighbor themselves sent. That is a much
+      smaller privacy footprint than a form service.
+    - Orders land in the same place as the "text to order" option on the
+      flyer, so there is only one inbox to check.
+
+  The tradeoff: the visitor has to actually press send in their messaging app.
+  A desktop browser may not handle `sms:` at all. That is why the confirmation
+  screen ALSO shows the full order text with a copy button and a tap-to-call
+  number, so there is always a way through.
+
+  TO CHANGE THE PHONE NUMBER: edit PHONE and PHONE_DISPLAY below. Nothing else.
+  TO CHANGE PRICING: edit the TIERS array below. The flyer must be updated to
+  match by hand.
+  ==========================================================================
+-->
+
+<style>
+  :root{
+    --char:    #141110;   /* app background */
+    --char-2:  #201A17;   /* raised card */
+    --char-3:  #2C2421;   /* borders */
+    --paper:   #F7F1E6;   /* primary text */
+    --muted:   #A79684;   /* secondary text */
+    --ember:   #C4321A;
+    --flame:   #F0701A;
+    --gold:    #FFC24B;
+    --bark:    #6B4A32;
+    --ok:      #6FBF73;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  html,body{
+    margin:0; padding:0;
+    background:var(--char);
+    color:var(--paper);
+    font-family:"Segoe UI",Roboto,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;                 /* 16px min stops iOS zooming on focus */
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:520px; margin:0 auto; padding:0 18px 140px; }
+
+  /* ---------------- header ---------------- */
+  header{ padding:22px 0 6px; text-align:center; }
+  header svg{ width:100%; height:auto; display:block; }
+  .tagline{
+    margin-top:6px; font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--muted); font-weight:700;
+  }
+
+  .rule{ height:1px; background:var(--char-3); margin:20px 0; }
+
+  /* ---------------- section headings ---------------- */
+  .step{ display:flex; align-items:center; gap:10px; margin:24px 0 12px; }
+  .step .n{
+    flex:0 0 24px; height:24px; border-radius:50%;
+    background:var(--flame); color:#1a1210;
+    font-size:13px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .step h2{
+    margin:0; font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:800; color:var(--paper);
+  }
+
+  /* ---------------- bundle tiers ---------------- */
+  .tiers{ display:flex; flex-direction:column; gap:10px; }
+  .tier{
+    display:flex; align-items:center; gap:14px;
+    background:var(--char-2); border:2px solid var(--char-3);
+    border-radius:14px; padding:14px 16px;
+    cursor:pointer; transition:border-color .15s, background .15s, transform .08s;
+    position:relative;
+  }
+  .tier:active{ transform:scale(.985); }
+  .tier[aria-checked="true"]{ border-color:var(--flame); background:#2A1D15; }
+
+  .tier .dot{
+    flex:0 0 22px; height:22px; border-radius:50%;
+    border:2px solid #55483F; position:relative;
+  }
+  .tier[aria-checked="true"] .dot{ border-color:var(--flame); }
+  .tier[aria-checked="true"] .dot::after{
+    content:""; position:absolute; inset:4px; border-radius:50%; background:var(--flame);
+  }
+
+  .tier .label{ flex:1; }
+  .tier .label b{ display:block; font-size:17px; font-weight:700; }
+  .tier .label small{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .tier .price{
+    font-size:26px; font-weight:800; color:var(--gold); letter-spacing:-.01em;
+  }
+  .flag{
+    position:absolute; top:-9px; right:14px;
+    background:var(--ember); color:#fff;
+    font-size:9px; font-weight:800; letter-spacing:.12em;
+    padding:3px 7px; border-radius:4px;
+  }
+
+  /* ---------------- form fields ---------------- */
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); font-weight:700; margin-bottom:6px;
+  }
+  .field label .opt{ text-transform:none; letter-spacing:0; font-weight:400; }
+  .field input, .field textarea{
+    width:100%; background:var(--char-2); color:var(--paper);
+    border:2px solid var(--char-3); border-radius:11px;
+    padding:13px 14px; font-size:16px; font-family:inherit;
+    transition:border-color .15s;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .field input:focus, .field textarea:focus{ outline:none; border-color:var(--flame); }
+  .field input::placeholder, .field textarea::placeholder{ color:#6B5C50; }
+  .field.err input, .field.err textarea{ border-color:var(--ember); }
+  .field .msg{ display:none; font-size:12px; color:#F08A6E; margin-top:5px; }
+  .field.err .msg{ display:block; }
+
+  /* ---------------- payment note ---------------- */
+  .note{
+    background:var(--char-2); border-left:3px solid var(--gold);
+    border-radius:0 11px 11px 0; padding:13px 15px;
+    font-size:13.5px; line-height:1.5; color:#D9CBBA; margin-top:22px;
+  }
+  .note b{ color:var(--gold); }
+
+  /* ---------------- sticky footer bar ---------------- */
+  .bar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:rgba(20,17,16,.96);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--char-3);
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+  }
+  .bar-in{ max-width:520px; margin:0 auto; display:flex; align-items:center; gap:14px; }
+  .total{ flex:0 0 auto; }
+  .total small{ display:block; font-size:10.5px; letter-spacing:.12em;
+                text-transform:uppercase; color:var(--muted); font-weight:700; }
+  .total b{ font-size:27px; color:var(--gold); }
+
+  .btn{
+    flex:1; border:0; border-radius:12px;
+    background:linear-gradient(180deg,#F0701A,#C4321A);
+    color:#fff; font-size:16.5px; font-weight:800; letter-spacing:.03em;
+    padding:16px 12px; cursor:pointer; font-family:inherit;
+    transition:transform .08s, filter .15s;
+  }
+  .btn:active{ transform:scale(.98); filter:brightness(1.08); }
+  .btn.ghost{
+    background:transparent; border:2px solid var(--char-3); color:var(--paper);
+    font-size:14.5px; padding:13px 12px;
+  }
+
+  /* ---------------- confirmation screen ---------------- */
+  .done{ display:none; text-align:center; padding:40px 0 20px; }
+  .done.on{ display:block; }
+  .done .check{
+    width:64px; height:64px; margin:0 auto 18px; border-radius:50%;
+    background:rgba(111,191,115,.14); border:2px solid var(--ok);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .done h2{ margin:0 0 10px; font-size:23px; }
+  .done p{ margin:0 auto 20px; max-width:400px; font-size:14.5px;
+           line-height:1.6; color:var(--muted); }
+
+  .summary{
+    background:var(--char-2); border:2px solid var(--char-3); border-radius:13px;
+    padding:16px; text-align:left; font-size:14px; line-height:1.65;
+    white-space:pre-wrap; word-break:break-word; color:#D9CBBA;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  .done .actions{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+  .callnum{ display:block; margin-top:18px; color:var(--gold);
+            font-size:15px; font-weight:700; text-decoration:none; }
+
+  .privacy{ margin-top:26px; font-size:11.5px; line-height:1.6;
+            color:#6B5C50; text-align:center; }
+
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= HEADER ================= -->
+  <header>
+    <svg viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Harvey's Neighborhood Firewood">
+      <defs>
+        <linearGradient id="ft" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFE894"/>
+          <stop offset="26%" stop-color="#FFC24B"/>
+          <stop offset="58%" stop-color="#F0701A"/>
+          <stop offset="88%" stop-color="#C4321A"/>
+          <stop offset="100%" stop-color="#8E1F08"/>
+        </linearGradient>
+        <linearGradient id="tg" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#E8570B"/>
+          <stop offset="45%" stop-color="#FFA22B" stop-opacity=".9"/>
+          <stop offset="100%" stop-color="#FFE894" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="fk" x="-30%" y="-30%" width="160%" height="160%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="7" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="8"
+                             xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="1"/>
+        </filter>
+      </defs>
+      <g filter="url(#fk)" opacity=".95">
+        <path d="M50 74 C48 50 64 44 58 22 C76 38 76 56 73 74 Z" fill="url(#tg)"/>
+        <path d="M120 74 C116 44 138 37 130 10 C157 33 153 55 148 74 Z" fill="url(#tg)"/>
+        <path d="M200 74 C196 52 213 45 206 25 C227 40 225 57 222 74 Z" fill="url(#tg)"/>
+        <path d="M278 74 C272 40 298 33 289 6 C320 30 314 53 309 74 Z" fill="url(#tg)"/>
+        <path d="M362 74 C358 51 375 44 368 24 C389 39 387 57 384 74 Z" fill="url(#tg)"/>
+        <path d="M438 74 C433 43 457 36 448 12 C477 35 472 55 467 74 Z" fill="url(#tg)"/>
+        <path d="M520 74 C516 52 533 45 526 25 C547 40 545 57 542 74 Z" fill="url(#tg)"/>
+      </g>
+      <g font-family="Impact,Haettenschweiler,'Arial Black',sans-serif"
+         text-anchor="middle" fill="url(#ft)" stroke="#0C0A09" stroke-width="2"
+         paint-order="stroke" stroke-linejoin="round">
+        <text x="310" y="112" textLength="450" lengthAdjust="spacingAndGlyphs" font-size="58">HARVEY'S</text>
+        <text x="310" y="162" textLength="580" lengthAdjust="spacingAndGlyphs" font-size="50">NEIGHBORHOOD</text>
+        <text x="310" y="212" textLength="480" lengthAdjust="spacingAndGlyphs" font-size="54">FIREWOOD</text>
+      </g>
+    </svg>
+    <div class="tagline">Hand-Tied &middot; Ready to Burn &middot; Delivered by Wagon</div>
+  </header>
+
+  <!-- ================= ORDER FORM ================= -->
+  <div id="form">
+
+    <div class="step"><div class="n">1</div><h2>Pick your bundles</h2></div>
+    <div class="tiers" id="tiers" role="radiogroup" aria-label="Number of bundles"></div>
+
+    <div class="step"><div class="n">2</div><h2>Where should we drop it?</h2></div>
+
+    <div class="field" id="f-name">
+      <label for="name">Your name</label>
+      <input id="name" type="text" autocomplete="name" placeholder="Jane Smith">
+      <div class="msg">Please add your name.</div>
+    </div>
+
+    <div class="field" id="f-addr">
+      <label for="addr">Street address</label>
+      <input id="addr" type="text" autocomplete="street-address" placeholder="123 Maple Ave">
+      <div class="msg">Please add your street address.</div>
+    </div>
+
+    <div class="field" id="f-phone">
+      <label for="phone">Your phone number</label>
+      <input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(847) 555-0123">
+      <div class="msg">Please add a phone number so we can confirm delivery.</div>
+    </div>
+
+    <div class="field">
+      <label for="notes">Delivery notes <span class="opt">(optional)</span></label>
+      <textarea id="notes" placeholder="Leave by the side door, gate code 1234, etc."></textarea>
+    </div>
+
+    <div class="note">
+      <b>No payment here.</b> Nothing is charged on this page. Harvey will confirm your
+      delivery time by text, and you can pay by <b>Venmo</b> or <b>cash</b> when the wood
+      shows up on your porch.
+    </div>
+
+    <p class="privacy">
+      Your name, address, and phone are put into a text message that <em>you</em> send from
+      your own phone. Nothing is saved on this website.
+    </p>
+  </div>
+
+  <!-- ================= CONFIRMATION ================= -->
+  <div class="done" id="done">
+    <div class="check">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+           stroke="#6FBF73" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+    <h2>Almost done</h2>
+    <p>Your texting app should have opened with the order ready to go.
+       <b>Press send in that app</b> to place the order. If it didn't open,
+       copy the order below and text it over.</p>
+
+    <div class="summary" id="summary"></div>
+
+    <div class="actions">
+      <button class="btn" id="copy">Copy order text</button>
+      <button class="btn ghost" id="again">Start a new order</button>
+    </div>
+
+    <a class="callnum" id="callnum" href="#">or tap to call</a>
+  </div>
+
+</div>
+
+<!-- ================= STICKY BAR ================= -->
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="total">
+      <small>Total</small>
+      <b id="total">$8</b>
+    </div>
+    <button class="btn" id="send">Send my order</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- CONFIG: the only things you normally need to change ---- */
+  const PHONE         = "+18477728470";     // used in the sms: / tel: links
+  const PHONE_DISPLAY = "(847) 772-8470";   // shown to humans
+
+  // Pricing must stay in sync with the printed flyer.
+  const TIERS = [
+    { qty:1, price:8,  label:"1 Bundle",  sub:"7 pieces, hand-tied",        flag:null },
+    { qty:2, price:15, label:"2 Bundles", sub:"14 pieces, save $1",         flag:null },
+    { qty:3, price:20, label:"3 Bundles", sub:"21 pieces, save $4",         flag:"BEST DEAL" }
+  ];
+
+  let selected = 0;  // index into TIERS
+
+  const $ = id => document.getElementById(id);
+
+  /* ---- build the tier cards ---- */
+  const tiersEl = $("tiers");
+  TIERS.forEach((t,i)=>{
+    const el = document.createElement("div");
+    el.className = "tier";
+    el.setAttribute("role","radio");
+    el.setAttribute("tabindex","0");
+    el.setAttribute("aria-checked", i===selected ? "true" : "false");
+    el.innerHTML =
+      (t.flag ? '<span class="flag">'+t.flag+'</span>' : '') +
+      '<span class="dot"></span>' +
+      '<span class="label"><b>'+t.label+'</b><small>'+t.sub+'</small></span>' +
+      '<span class="price">$'+t.price+'</span>';
+    el.addEventListener("click", ()=>choose(i));
+    el.addEventListener("keydown", e=>{
+      if(e.key===" "||e.key==="Enter"){ e.preventDefault(); choose(i); }
+    });
+    tiersEl.appendChild(el);
+  });
+
+  function choose(i){
+    selected = i;
+    [...tiersEl.children].forEach((c,n)=>c.setAttribute("aria-checked", n===i?"true":"false"));
+    $("total").textContent = "$" + TIERS[i].price;
+  }
+
+  /* ---- validation ---- */
+  function check(){
+    const bits = [["f-name","name"],["f-addr","addr"],["f-phone","phone"]];
+    let ok = true, first = null;
+    bits.forEach(([wrap,input])=>{
+      const bad = $(input).value.trim().length < 2;
+      $(wrap).classList.toggle("err", bad);
+      if(bad && !first) first = $(input);
+      if(bad) ok = false;
+    });
+    if(first){ first.focus(); first.scrollIntoView({block:"center",behavior:"smooth"}); }
+    return ok;
+  }
+
+  /* ---- build the message text ---- */
+  function orderText(){
+    const t = TIERS[selected];
+    const notes = $("notes").value.trim();
+    return "FIREWOOD ORDER\n"
+         + t.label + " - $" + t.price + "\n\n"
+         + "Name: "    + $("name").value.trim()  + "\n"
+         + "Address: " + $("addr").value.trim()  + "\n"
+         + "Phone: "   + $("phone").value.trim()
+         + (notes ? "\n\nNotes: " + notes : "");
+  }
+
+  /* ---- send ---- */
+  $("send").addEventListener("click", function(){
+    if(!check()) return;
+    const msg  = orderText();
+
+    $("summary").textContent = msg;
+    $("form").style.display  = "none";
+    $("bar").style.display   = "none";
+    $("done").classList.add("on");
+    $("callnum").href = "tel:" + PHONE;
+    $("callnum").textContent = "or tap to call " + PHONE_DISPLAY;
+    window.scrollTo({top:0,behavior:"smooth"});
+
+    // iOS wants `&body=`, Android wants `?body=`. Sending `?&body=` satisfies both,
+    // but explicit detection is more reliable across older devices.
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    const sep   = isIOS ? "&" : "?";
+    window.location.href = "sms:" + PHONE + sep + "body=" + encodeURIComponent(msg);
+  });
+
+  /* ---- copy fallback ---- */
+  $("copy").addEventListener("click", function(){
+    const txt = $("summary").textContent;
+    const done = ()=>{ this.textContent="Copied"; setTimeout(()=>this.textContent="Copy order text",1800); };
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(txt).then(done).catch(fallback);
+    } else { fallback(); }
+    function fallback(){
+      const ta=document.createElement("textarea");
+      ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); done(); }catch(e){}
+      document.body.removeChild(ta);
+    }
+  });
+
+  $("again").addEventListener("click", function(){
+    $("done").classList.remove("on");
+    $("form").style.display = "";
+    $("bar").style.display  = "";
+    ["name","addr","phone","notes"].forEach(id=>$(id).value="");
+    choose(0);
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+
+  choose(0);
+})();
+</script>
+</body>
+</html>
