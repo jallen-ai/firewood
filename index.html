@@ -199,8 +199,8 @@
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   .done .actions{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
-  .callnum{ display:block; margin-top:18px; color:var(--gold);
-            font-size:15px; font-weight:700; text-decoration:none; }
+  .textnum{ margin:18px 0 0; font-size:14px; color:var(--muted); }
+  .textnum b{ color:var(--gold); font-size:16px; letter-spacing:.01em; }
 
   .privacy{ margin-top:26px; font-size:11.5px; line-height:1.6;
             color:#6B5C50; text-align:center; }
@@ -316,10 +316,11 @@
 
     <div class="actions">
       <button class="btn" id="copy">Copy order text</button>
+      <button class="btn ghost" id="retry">Open my texting app again</button>
       <button class="btn ghost" id="again">Start a new order</button>
     </div>
 
-    <a class="callnum" id="callnum" href="#">or tap to call</a>
+    <p class="textnum">Text orders to <b id="numtxt"></b></p>
   </div>
 
 </div>
@@ -340,7 +341,7 @@
   "use strict";
 
   /* ---- CONFIG: the only things you normally need to change ---- */
-  const PHONE         = "+18477728470";     // used in the sms: / tel: links
+  const PHONE         = "+18477728470";     // used for the sms: handoff only
   const PHONE_DISPLAY = "(847) 772-8470";   // shown to humans
 
   // Pricing must stay in sync with the printed flyer.
@@ -415,8 +416,7 @@
     $("form").style.display  = "none";
     $("bar").style.display   = "none";
     $("done").classList.add("on");
-    $("callnum").href = "tel:" + PHONE;
-    $("callnum").textContent = "or tap to call " + PHONE_DISPLAY;
+    $("numtxt").textContent = PHONE_DISPLAY;
     window.scrollTo({top:0,behavior:"smooth"});
 
     // iOS wants `&body=`, Android wants `?body=`. Sending `?&body=` satisfies both,
@@ -440,6 +440,15 @@
       try{ document.execCommand("copy"); done(); }catch(e){}
       document.body.removeChild(ta);
     }
+  });
+
+  // Re-fires the SMS handoff. Some browsers block the first attempt, and some
+  // people dismiss the app switch by accident. This is the recovery path, and it
+  // is still text-only: there is no call option anywhere in this app.
+  $("retry").addEventListener("click", function(){
+    const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+    window.location.href = "sms:" + PHONE + (isIOS ? "&" : "?")
+                         + "body=" + encodeURIComponent($("summary").textContent);
   });
 
   $("again").addEventListener("click", function(){
