@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Order Firewood | Harvey's Neighborhood Firewood</title>
 <meta name="description" content="Order hand-tied firewood bundles delivered by wagon.">
-<meta name="theme-color" content="#141110">
+<meta name="theme-color" content="#F7F2EA">
 
 <!--
   ==========================================================================
@@ -43,16 +43,16 @@
 
 <style>
   :root{
-    --char:    #141110;   /* app background */
-    --char-2:  #201A17;   /* raised card */
-    --char-3:  #2C2421;   /* borders */
-    --paper:   #F7F1E6;   /* primary text */
-    --muted:   #A79684;   /* secondary text */
+    --char:    #F7F2EA;   /* app background (warm off-white) */
+    --char-2:  #FFFFFF;   /* raised card */
+    --char-3:  #E5DDD0;   /* borders */
+    --paper:   #2A211C;   /* primary text (dark) */
+    --muted:   #6E5D49;   /* secondary text (darkened for legibility) */
     --ember:   #C4321A;
-    --flame:   #F0701A;
-    --gold:    #FFC24B;
+    --flame:   #E8600F;
+    --gold:    #975008;   /* price amber, high-contrast on light */
     --bark:    #6B4A32;
-    --ok:      #6FBF73;
+    --ok:      #3E9E54;
   }
 
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -62,7 +62,7 @@
     background:var(--char);
     color:var(--paper);
     font-family:"Segoe UI",Roboto,-apple-system,"Helvetica Neue",Arial,sans-serif;
-    font-size:16px;                 /* 16px min stops iOS zooming on focus */
+    font-size:17px;                 /* larger base for easy reading; >=16px stops iOS zoom on focus */
     -webkit-font-smoothing:antialiased;
   }
 
@@ -72,7 +72,7 @@
   header{ padding:22px 0 6px; text-align:center; }
   header svg{ width:100%; height:auto; display:block; }
   .tagline{
-    margin-top:6px; font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+    margin-top:6px; font-size:12.5px; letter-spacing:.18em; text-transform:uppercase;
     color:var(--muted); font-weight:700;
   }
 
@@ -87,7 +87,7 @@
     display:flex; align-items:center; justify-content:center;
   }
   .step h2{
-    margin:0; font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    margin:0; font-size:14.5px; letter-spacing:.12em; text-transform:uppercase;
     font-weight:800; color:var(--paper);
   }
 
@@ -101,11 +101,11 @@
     position:relative;
   }
   .tier:active{ transform:scale(.985); }
-  .tier[aria-checked="true"]{ border-color:var(--flame); background:#2A1D15; }
+  .tier[aria-checked="true"]{ border-color:var(--flame); background:#FCEBDA; }
 
   .tier .dot{
     flex:0 0 22px; height:22px; border-radius:50%;
-    border:2px solid #55483F; position:relative;
+    border:2px solid #C7B9A5; position:relative;
   }
   .tier[aria-checked="true"] .dot{ border-color:var(--flame); }
   .tier[aria-checked="true"] .dot::after{
@@ -113,10 +113,10 @@
   }
 
   .tier .label{ flex:1; }
-  .tier .label b{ display:block; font-size:17px; font-weight:700; }
-  .tier .label small{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .tier .label b{ display:block; font-size:19px; font-weight:700; }
+  .tier .label small{ display:block; font-size:14px; color:var(--muted); margin-top:2px; }
   .tier .price{
-    font-size:26px; font-weight:800; color:var(--gold); letter-spacing:-.01em;
+    font-size:28px; font-weight:800; color:var(--gold); letter-spacing:-.01em;
   }
   .flag{
     position:absolute; top:-9px; right:14px;
@@ -128,19 +128,19 @@
   /* ---------------- form fields ---------------- */
   .field{ margin-bottom:14px; }
   .field label{
-    display:block; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
+    display:block; font-size:13px; letter-spacing:.08em; text-transform:uppercase;
     color:var(--muted); font-weight:700; margin-bottom:6px;
   }
   .field label .opt{ text-transform:none; letter-spacing:0; font-weight:400; }
   .field input, .field textarea{
     width:100%; background:var(--char-2); color:var(--paper);
     border:2px solid var(--char-3); border-radius:11px;
-    padding:13px 14px; font-size:16px; font-family:inherit;
+    padding:14px 15px; font-size:17px; font-family:inherit;
     transition:border-color .15s;
   }
   .field textarea{ resize:vertical; min-height:70px; }
   .field input:focus, .field textarea:focus{ outline:none; border-color:var(--flame); }
-  .field input::placeholder, .field textarea::placeholder{ color:#6B5C50; }
+  .field input::placeholder, .field textarea::placeholder{ color:#A2937F; }
   .field.err input, .field.err textarea{ border-color:var(--ember); }
   .field .msg{ display:none; font-size:12px; color:#F08A6E; margin-top:5px; }
   .field.err .msg{ display:block; }
@@ -148,17 +148,18 @@
   /* ---------------- payment note ---------------- */
   .note{
     background:var(--char-2); border-left:3px solid var(--gold);
-    border-radius:0 11px 11px 0; padding:13px 15px;
-    font-size:13.5px; line-height:1.5; color:#D9CBBA; margin-top:22px;
+    border-radius:0 11px 11px 0; padding:14px 16px;
+    font-size:15px; line-height:1.55; color:#463A2E; margin-top:22px;
   }
   .note b{ color:var(--gold); }
 
   /* ---------------- sticky footer bar ---------------- */
   .bar{
     position:fixed; left:0; right:0; bottom:0;
-    background:rgba(20,17,16,.96);
+    background:rgba(255,253,249,.96);
     backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
     border-top:1px solid var(--char-3);
+    box-shadow:0 -4px 18px rgba(60,45,30,.08);
     padding:12px 18px calc(12px + env(safe-area-inset-bottom));
   }
   .bar-in{ max-width:520px; margin:0 auto; display:flex; align-items:center; gap:14px; }
@@ -194,16 +195,16 @@
 
   .summary{
     background:var(--char-2); border:2px solid var(--char-3); border-radius:13px;
-    padding:16px; text-align:left; font-size:14px; line-height:1.65;
-    white-space:pre-wrap; word-break:break-word; color:#D9CBBA;
+    padding:16px; text-align:left; font-size:15px; line-height:1.65;
+    white-space:pre-wrap; word-break:break-word; color:#33291F;
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   .done .actions{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
   .textnum{ margin:18px 0 0; font-size:14px; color:var(--muted); }
   .textnum b{ color:var(--gold); font-size:16px; letter-spacing:.01em; }
 
-  .privacy{ margin-top:26px; font-size:11.5px; line-height:1.6;
-            color:#6B5C50; text-align:center; }
+  .privacy{ margin-top:26px; font-size:13px; line-height:1.6;
+            color:#7A6A56; text-align:center; }
 
   @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
 </style>
@@ -330,7 +331,7 @@
   <div class="bar-in">
     <div class="total">
       <small>Total</small>
-      <b id="total">$8</b>
+      <b id="total">$9</b>
     </div>
     <button class="btn" id="send">Send my order</button>
   </div>
@@ -346,9 +347,9 @@
 
   // Pricing must stay in sync with the printed flyer.
   const TIERS = [
-    { qty:1, price:8,  label:"1 Bundle",  sub:"7 pieces, hand-tied",        flag:null },
-    { qty:2, price:15, label:"2 Bundles", sub:"14 pieces, save $1",         flag:null },
-    { qty:3, price:20, label:"3 Bundles", sub:"21 pieces, save $4",         flag:"BEST DEAL" }
+    { qty:1, price:9,  label:"1 Bundle",  sub:"6 pieces, hand-tied",        flag:null },
+    { qty:2, price:15, label:"2 Bundles", sub:"12 pieces, save $3",         flag:null },
+    { qty:3, price:20, label:"3 Bundles", sub:"18 pieces, save $7",         flag:"BEST DEAL" }
   ];
 
   let selected = 0;  // index into TIERS
