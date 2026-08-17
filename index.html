@@ -43,14 +43,15 @@
 
 <style>
   :root{
-    --char:    #F7F2EA;   /* app background (warm off-white) */
-    --char-2:  #FFFFFF;   /* raised card */
-    --char-3:  #E5DDD0;   /* borders */
-    --paper:   #2A211C;   /* primary text (dark) */
-    --muted:   #6E5D49;   /* secondary text (darkened for legibility) */
-    --ember:   #C4321A;
-    --flame:   #E8600F;
-    --gold:    #975008;   /* price amber, high-contrast on light */
+    --char:    #FFFFFF;   /* page background (clean white, matches flyer) */
+    --char-2:  #FFFFFF;   /* cards (separated by hairline borders) */
+    --char-3:  #D9D6D1;   /* hairline borders */
+    --panel:   #F6F4F1;   /* subtle warm panel */
+    --paper:   #1C1A17;   /* primary text (charcoal) */
+    --muted:   #6D6A65;   /* secondary text */
+    --ember:   #C2410C;   /* the single accent color */
+    --flame:   #C2410C;   /* unified to ember */
+    --gold:    #C2410C;   /* prices in ember, matching flyer */
     --bark:    #6B4A32;
     --ok:      #3E9E54;
   }
@@ -61,7 +62,7 @@
     margin:0; padding:0;
     background:var(--char);
     color:var(--paper);
-    font-family:"Segoe UI",Roboto,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    font-family:"Helvetica Neue",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     font-size:17px;                 /* larger base for easy reading; >=16px stops iOS zoom on focus */
     -webkit-font-smoothing:antialiased;
   }
@@ -69,10 +70,16 @@
   .wrap{ max-width:520px; margin:0 auto; padding:0 18px 140px; }
 
   /* ---------------- header ---------------- */
-  header{ padding:22px 0 6px; text-align:center; }
-  header svg{ width:100%; height:auto; display:block; }
+  header{ padding:26px 0 16px; text-align:center; border-bottom:2px solid var(--paper); }
+  .brand{ display:flex; align-items:baseline; justify-content:center; gap:10px; }
+  .brand svg.flame{ width:24px; height:24px; flex:0 0 auto; transform:translateY(3px); }
+  .brand h1{
+    margin:0; font-size:34px; line-height:1; font-weight:800;
+    letter-spacing:-.5px; color:var(--paper);
+  }
+  .brand h1 .ember{ color:var(--ember); }
   .tagline{
-    margin-top:6px; font-size:12.5px; letter-spacing:.18em; text-transform:uppercase;
+    margin-top:10px; font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
     color:var(--muted); font-weight:700;
   }
 
@@ -82,7 +89,7 @@
   .step{ display:flex; align-items:center; gap:10px; margin:24px 0 12px; }
   .step .n{
     flex:0 0 24px; height:24px; border-radius:50%;
-    background:var(--flame); color:#1a1210;
+    background:var(--ember); color:#fff;
     font-size:13px; font-weight:800;
     display:flex; align-items:center; justify-content:center;
   }
@@ -101,7 +108,7 @@
     position:relative;
   }
   .tier:active{ transform:scale(.985); }
-  .tier[aria-checked="true"]{ border-color:var(--flame); background:#FCEBDA; }
+  .tier[aria-checked="true"]{ border-color:var(--ember); background:#FBEEE9; }
 
   .tier .dot{
     flex:0 0 22px; height:22px; border-radius:50%;
@@ -170,7 +177,7 @@
 
   .btn{
     flex:1; border:0; border-radius:12px;
-    background:linear-gradient(180deg,#F0701A,#C4321A);
+    background:var(--ember);
     color:#fff; font-size:16.5px; font-weight:800; letter-spacing:.03em;
     padding:16px 12px; cursor:pointer; font-family:inherit;
     transition:transform .08s, filter .15s;
@@ -215,45 +222,13 @@
 
   <!-- ================= HEADER ================= -->
   <header>
-    <svg viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" role="img"
-         aria-label="Harvey's Neighborhood Firewood">
-      <defs>
-        <linearGradient id="ft" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#FFE894"/>
-          <stop offset="26%" stop-color="#FFC24B"/>
-          <stop offset="58%" stop-color="#F0701A"/>
-          <stop offset="88%" stop-color="#C4321A"/>
-          <stop offset="100%" stop-color="#8E1F08"/>
-        </linearGradient>
-        <linearGradient id="tg" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="#E8570B"/>
-          <stop offset="45%" stop-color="#FFA22B" stop-opacity=".9"/>
-          <stop offset="100%" stop-color="#FFE894" stop-opacity="0"/>
-        </linearGradient>
-        <filter id="fk" x="-30%" y="-30%" width="160%" height="160%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="7" result="n"/>
-          <feDisplacementMap in="SourceGraphic" in2="n" scale="8"
-                             xChannelSelector="R" yChannelSelector="G"/>
-          <feGaussianBlur stdDeviation="1"/>
-        </filter>
-      </defs>
-      <g filter="url(#fk)" opacity=".95">
-        <path d="M50 74 C48 50 64 44 58 22 C76 38 76 56 73 74 Z" fill="url(#tg)"/>
-        <path d="M120 74 C116 44 138 37 130 10 C157 33 153 55 148 74 Z" fill="url(#tg)"/>
-        <path d="M200 74 C196 52 213 45 206 25 C227 40 225 57 222 74 Z" fill="url(#tg)"/>
-        <path d="M278 74 C272 40 298 33 289 6 C320 30 314 53 309 74 Z" fill="url(#tg)"/>
-        <path d="M362 74 C358 51 375 44 368 24 C389 39 387 57 384 74 Z" fill="url(#tg)"/>
-        <path d="M438 74 C433 43 457 36 448 12 C477 35 472 55 467 74 Z" fill="url(#tg)"/>
-        <path d="M520 74 C516 52 533 45 526 25 C547 40 545 57 542 74 Z" fill="url(#tg)"/>
-      </g>
-      <g font-family="Impact,Haettenschweiler,'Arial Black',sans-serif"
-         text-anchor="middle" fill="url(#ft)" stroke="#0C0A09" stroke-width="2"
-         paint-order="stroke" stroke-linejoin="round">
-        <text x="310" y="112" textLength="450" lengthAdjust="spacingAndGlyphs" font-size="58">HARVEY'S</text>
-        <text x="310" y="162" textLength="580" lengthAdjust="spacingAndGlyphs" font-size="50">NEIGHBORHOOD</text>
-        <text x="310" y="212" textLength="480" lengthAdjust="spacingAndGlyphs" font-size="54">FIREWOOD</text>
-      </g>
-    </svg>
+    <div class="brand">
+      <svg class="flame" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2c1 3-1 4.5-2.5 6C8 9.5 7 11 7 13a5 5 0 0 0 10 0c0-1.8-.8-3.2-1.8-4.4C15.6 10.8 14 11 14 9c0-2-1-4-2-7z" fill="#C2410C"/>
+        <path d="M12 22a3 3 0 0 0 3-3c0-1.4-1-2.4-1.6-3.2-.5.9-1.4 1-1.4-.3-.6.8-2 1.7-2 3.5a2 2 0 0 0 2 3z" fill="#fff"/>
+      </svg>
+      <h1>Harvey's <span class="ember">Firewood</span></h1>
+    </div>
     <div class="tagline">Hand-Tied &middot; Ready to Burn &middot; Delivered by Wagon</div>
   </header>
 
